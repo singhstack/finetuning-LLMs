@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT Web App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>GPT Conversation and Summary Generator</h1>
+    <textarea id="prompt" rows="4" cols="50"></textarea><br>
+    <button onclick="generateConversation()">Generate Conversation</button>
+    <button onclick="generateSummaries()">Generate Summaries</button>
+    <button onclick="compareSummaries()">Compare Summaries</button>
+    <div id="response"></div>
+
+    <script>
+        function generateConversation() {
+            var prompt = $('#prompt').val();
+            $.ajax({
+                url: '/generate',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({prompt: prompt}),
+                success: function(response) {
+                    $('#response').html(`<p>${response.conversation}</p>`);
+                }
+            });
+        }
+
+        function generateSummaries() {
+            var prompt = $('#prompt').val();
+            $.ajax({
+                url: '/generate_summaries',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({prompt: prompt}),
+                success: function(response) {
+                    $('#response').html(`<p>Pretrained Summary: ${response.summary_pretrained}</p><p>Fine-tuned Summary: ${response.summary_finetuned}</p>`);
+                }
+            });
+        }
+
+        function compareSummaries() {
+            var prompt = $('#prompt').val();
+            $.ajax({
+                url: '/generate_summaries',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({prompt: prompt}),
+                success: function(response) {
+                    var summary1 = response.summary_pretrained;
+                    var summary2 = response.summary_finetuned;
+                    $.ajax({
+                        url: '/compare_summaries',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({summary1: summary1, summary2: summary2}),
+                        success: function(compareResponse) {
+                            $('#response').html(`<p>Comparison: ${compareResponse.comparison}</p>`);
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
